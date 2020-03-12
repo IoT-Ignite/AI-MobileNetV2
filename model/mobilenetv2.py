@@ -27,29 +27,29 @@ class MobileNetV2:
 	'''
 	def block(self, inputs, filters, kernel, t, stride, n):
 
-		x= self.bottleneck(inputs, filters, kernel, stride, t)
-
+		#x= self.bottleneck(inputs, filters, kernel, stride, t)
+		x= self.bottleneck(inputs, filters, kernel,stride, t)
 		for i in range(1, n):
-			x= self.bottleneck(x, filters, kernel,stride, t)
+			x= self.bottleneck(x, filters, kernel,1, t, True)
 
 		return x
-	def bottleneck(self, inputs, filters, kernels, stride, t):
+	def bottleneck(self, inputs, filters, kernels, stride, t, addStatus=False):
 		#inputs = K.placeholder(shape=(2, 4, 5))
     	#print(K.int_shape(inputs)[-1])-> output 5
 		new_channel = tf.keras.backend.int_shape(inputs)[-1]*t
-
+		cchannel = int(filters * 1.0)
 		x= self.conv2D(inputs, new_channel, (1, 1), (1,1))
-
 		x= layers.DepthwiseConv2D(kernels, strides=(stride, stride), depth_multiplier=1, padding='same')(x)
 		x= layers.BatchNormalization()(x)
 		x= layers.Activation(self.ReLU6)(x)
-		
-		x= layers.Conv2D(int(filters * 1.0), (1, 1), padding='same', strides=(1, 1))(x)
+
+		x= layers.Conv2D(cchannel, (1, 1), strides=(1, 1), padding='same')(x)
 		x= layers.BatchNormalization()(x)
 
 		#if the stride is 1, add the input and the current model
-		if(stride==3):
-			x= layers.Add()([x, inputs])
+		if(addStatus==True):
+			print("yesss   >>", x.shape, inputs.shape)
+			new= layers.Add()([x, inputs])
 		return x
 	
 
@@ -78,7 +78,7 @@ class MobileNetV2:
 	def create_model(self):
 		inputs = layers.Input(shape=self.input_shape)
 		first_filters =self._make_divisible(32*1.0, 8)
-		#We always use kernel size 3 × 3 as is standardfor modern networks,
+		#We always use kernel size 3X 3 as is standardfor modern networks
 		kernel=(3, 3)
 		#add the first 2d conv. layer
 		x = self.conv2D(inputs, first_filters, kernel, (2, 2))
@@ -97,12 +97,17 @@ class MobileNetV2:
 		x= layers.Reshape((1, 1, 1280))(x)
 		x= layers.Dropout(0.3, name='Dropout')(x)
 		x= layers.Conv2D(self.num_classes, (1, 1), padding='same')(x)
-		x = layers.Activation('softmax', name='softmax')(x)
+		x = layers.Activation('sigmoid', name='sigmoid')(x)
 		output = layers.Reshape((self.num_classes,))(x)
 
 		model =Model(inputs, output)
-		model.compile(optimizer=self.optimizer, loss=self.loss,  metrics=self.metrics)
+		print(model.summary())
+		model.compile(optimizer=self.optimizer, loss=tf.keras.losses.BinaryCrossentropy(),  metrics=self.metrics)
+		
 		return model
+#myModel=MobileNetV2((224, 224, 3), 1, loss='binary_crossentropy', optimizer=tf.keras.optimizers.Adam(), metrics=['accuracy'])
+
+#createdModel=myModel.create_model()
 	
 
 
