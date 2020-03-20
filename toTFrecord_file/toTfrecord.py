@@ -8,12 +8,11 @@ import sys
 import argparse
 import io
 import json
-import contextlib2
 import numpy as np
 
 import PIL.Image
 
-import dataset_util
+from utils import dataset_util
 
 def toTfrecord(f, pathTofile):
 	height = None # Image height
@@ -60,8 +59,6 @@ def toTfrecord(f, pathTofile):
 				ymaxs.append( min(0.995, ((float(annot[1]) + float(annot[3])) / height) ) )
 				classes_text.append("face".encode('utf8'))
 				classes.append(0)
-				poses.append("front".encode('utf8'))
-				truncated.append(int(0))
 				print(xmins[-1], ymins[-1], xmaxs[-1], ymaxs[-1], classes_text[-1], classes[-1])
 				valid_face_num += 1;
 				
@@ -69,7 +66,7 @@ def toTfrecord(f, pathTofile):
 		'image/height':
 		dataset_util.int64_feature(int(height)),
 		'image/width':
-		dataset_util.int64_feature(int(height)),
+		dataset_util.int64_feature(int(width)),
 		'image/filename':
 		dataset_util.bytes_feature(filename.encode('utf8')),
 		'image/source_id':
@@ -90,10 +87,8 @@ def toTfrecord(f, pathTofile):
 		dataset_util.float_list_feature(ymaxs),
 		'image/object/class/text':dataset_util.bytes_list_feature(value=classes_text),
 		'image/object/class/label': dataset_util.int64_list_feature(classes),
-		'image/object/difficult': dataset_util.int64_list_feature(int(0)),
-		'image/object/truncated': dataset_util.int64_list_feature(truncated),
-		'image/object/view': dataset_util.bytes_list_feature(poses),
 	}
+	print("xxxxx", xmins)
 	example = tf.train.Example(features=tf.train.Features(feature=feature_dict))
 	return example
 
@@ -129,7 +124,7 @@ def main():
 	args = parser.parse_args()
 	numOfFiles=(countImagefiles(args.path+"/images"))
 	f=open(args.path+"/"+args.annotation)
-	output = tf.python_io.TFRecordWriter(args.output+"/"+args.filename+".tfrecord")
+	output = tf.io.TFRecordWriter(args.output+"/"+args.filename+".tfrecord")
 	for img in range(numOfFiles):
 		example =toTfrecord(f, args.path+"/images")
 		
