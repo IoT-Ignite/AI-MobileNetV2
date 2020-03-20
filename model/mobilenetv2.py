@@ -13,8 +13,8 @@ class MobileNetV2:
 		self.loss=loss
 		self.metrics=metrics
 
-	
-	'''
+
+		'''
 		inputs -> input
 		filters -> the output 
 		kernel -> always (3, 3)
@@ -24,7 +24,7 @@ class MobileNetV2:
 
 		Returns-> the output tensor
 
-	'''
+		'''
 	def block(self, inputs, filters, kernel, t, stride, n):
 
 		#x= self.bottleneck(inputs, filters, kernel, stride, t)
@@ -35,23 +35,22 @@ class MobileNetV2:
 		return x
 	def bottleneck(self, inputs, filters, kernels, stride, t, addStatus=False):
 		#inputs = K.placeholder(shape=(2, 4, 5))
-    	#print(K.int_shape(inputs)[-1])-> output 5
+		#print(K.int_shape(inputs)[-1])-> output 5
 		new_channel = tf.keras.backend.int_shape(inputs)[-1]*t
 		cchannel = int(filters * 1.0)
 		x= self.conv2D(inputs, new_channel, (1, 1), (1,1))
 		x= layers.DepthwiseConv2D(kernels, strides=(stride, stride), depth_multiplier=1, padding='same')(x)
 		x= layers.BatchNormalization()(x)
-		x= layers.Activation(self.ReLU6)(x)
+		x= layers.Activation('relu')(x)
 
 		x= layers.Conv2D(cchannel, (1, 1), strides=(1, 1), padding='same')(x)
 		x= layers.BatchNormalization()(x)
 
 		#if the stride is 1, add the input and the current model
 		if(addStatus==True):
-			print("yesss   >>", x.shape, inputs.shape)
 			new= layers.Add()([x, inputs])
 		return x
-	
+
 
 
 
@@ -59,7 +58,7 @@ class MobileNetV2:
 	def conv2D(self, inputs, filters, kernel, stride):
 		x= layers.Conv2D(filters, kernel, padding='same', strides=stride)(inputs)
 		x= layers.BatchNormalization()(x)
-		x= layers.Activation(self.ReLU6)(x)
+		x= layers.Activation('relu')(x)
 		return x
 
 	def ReLU6(self, inp):
@@ -101,13 +100,12 @@ class MobileNetV2:
 		output = layers.Reshape((self.num_classes,))(x)
 
 		model =Model(inputs, output)
-		print(model.summary())
 		model.compile(optimizer=self.optimizer, loss=tf.keras.losses.BinaryCrossentropy(),  metrics=self.metrics)
-		
-		return model
-#myModel=MobileNetV2((224, 224, 3), 1, loss='binary_crossentropy', optimizer=tf.keras.optimizers.Adam(), metrics=['accuracy'])
 
-#createdModel=myModel.create_model()
+		return model
+	#myModel=MobileNetV2((224, 224, 3), 1, loss='binary_crossentropy', optimizer=tf.keras.optimizers.Adam(), metrics=['accuracy'])
+
+	#createdModel=myModel.create_model()
 	
 
 
