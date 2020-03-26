@@ -60,12 +60,12 @@ def main():
         for box in zip(xmin,ymin,xmax,ymax):
             draw_box(img, box)
 
-        cv2.imshow('win', img[...,::-1])
+        cv2.imshow('Image', img[...,::-1])
         k = cv2.waitKey(0)
 
         if k in [ord('q'), 27]:
             break
-    cv2.destroyWindow('win')
+    cv2.destroyWindow('Image')
 
 if __name__ == "__main__":
     main()
