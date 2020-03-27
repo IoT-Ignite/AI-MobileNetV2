@@ -12,7 +12,7 @@ import numpy as np
 
 import PIL.Image
 
-from utils import dataset_util
+import dataset_util
 
 def toTfrecord(f, pathTofile):
 	height = None # Image height
