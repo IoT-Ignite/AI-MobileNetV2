@@ -16,7 +16,7 @@ def draw_box(img, box):
             )
 
 def main():
-    tf.enable_eager_execution()
+    #tf.enable_eager_execution()
     rec_files = glob.glob(training_filename)
     #print rec_files
     np.random.shuffle(rec_files)
@@ -40,7 +40,7 @@ def main():
         'image/object/class/label':tf.io.VarLenFeature(tf.int64),
         }
 
-    parse = lambda x : tf.parse_single_example(x, image_feature_description)
+    parse = lambda x : tf.io.parse_single_example(x, image_feature_description)
     dataset = rec.map(parse)
     shuf = dataset.shuffle(buffer_size = 50)
     cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
@@ -60,12 +60,12 @@ def main():
         for box in zip(xmin,ymin,xmax,ymax):
             draw_box(img, box)
 
-        cv2.imshow('Image', img[...,::-1])
+        cv2.imshow('win', img[...,::-1])
         k = cv2.waitKey(0)
 
         if k in [ord('q'), 27]:
             break
-    cv2.destroyWindow('Image')
+    cv2.destroyWindow('win')
 
 if __name__ == "__main__":
     main()
